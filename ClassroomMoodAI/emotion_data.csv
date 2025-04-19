@@ -1,0 +1,13 @@
+timestamp,student_id,emotion,confidence
+2025-04-19 10:00:00,student_01,happy,0.92
+2025-04-19 10:00:01,student_02,neutral,0.78
+2025-04-19 10:00:02,student_03,sad,0.80
+2025-04-19 10:00:03,student_01,confused,0.75
+2025-04-19 10:00:04,student_02,happy,0.88
+2025-04-19 10:00:05,student_03,bored,0.70
+2025-04-19 10:00:06,student_01,neutral,0.85
+2025-04-19 10:00:07,student_02,confused,0.67
+2025-04-19 10:00:08,student_03,happy,0.90
+2025-04-19 10:00:09,student_01,sad,0.80
+2025-04-19 10:00:10,student_02,bored,0.72
+2025-04-19 10:00:11,student_03,happy,0.95
