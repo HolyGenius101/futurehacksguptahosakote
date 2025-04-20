@@ -46,33 +46,38 @@ st.plotly_chart(bar, use_container_width=True)
 st.markdown("### 🧾 Prediction Details")
 st.dataframe(filtered_df.drop(columns=["original_label"]) if "original_label" in filtered_df.columns else filtered_df)
 
-# 🔴 Webcam Emotion Detection
+# Webcam Emotion Detection
 st.markdown("---")
 st.markdown("### 🎥 Try It Yourself – Webcam Emotion Detection")
-st.info("Click below to take a snapshot and we'll tell you what emotion we detect.")
 
-img_file_buffer = st.camera_input("📸 Capture your face")
+use_camera = st.checkbox("📷 Turn on Webcam")
 
-if img_file_buffer is not None:
-    from PIL import Image
-    import torch
-    from transformers import AutoImageProcessor, AutoModelForImageClassification
+if use_camera:
+    st.info("Click below to take a snapshot and we'll tell you what emotion we detect.")
+    img_file_buffer = st.camera_input("📸 Capture your face")
 
-    # Load model + processor
-    model_name = "motheecreator/vit-Facial-Expression-Recognition"
-    processor = AutoImageProcessor.from_pretrained(model_name)
-    model = AutoModelForImageClassification.from_pretrained(model_name)
-    model.eval()
+    if img_file_buffer is not None:
+        from PIL import Image
+        import torch
+        from transformers import AutoImageProcessor, AutoModelForImageClassification
 
-    # Process the image
-    img = Image.open(img_file_buffer).convert("RGB")
-    inputs = processor(images=img, return_tensors="pt")
-    with torch.no_grad():
-        outputs = model(**inputs)
-        probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
-        pred_idx = probs.argmax().item()
-        label = model.config.id2label[pred_idx]
-        confidence = probs[0][pred_idx].item()
+        # Load model + processor
+        model_name = "motheecreator/vit-Facial-Expression-Recognition"
+        processor = AutoImageProcessor.from_pretrained(model_name)
+        model = AutoModelForImageClassification.from_pretrained(model_name)
+        model.eval()
 
-    st.success(f"🧠 Detected Emotion: {label} ({confidence:.2%} confidence)")
-    st.image(img, caption="Your Captured Image", use_column_width=True)
+        # Process the image
+        img = Image.open(img_file_buffer).convert("RGB")
+        inputs = processor(images=img, return_tensors="pt")
+        with torch.no_grad():
+            outputs = model(**inputs)
+            probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
+            pred_idx = probs.argmax().item()
+            label = model.config.id2label[pred_idx]
+            confidence = probs[0][pred_idx].item()
+
+        st.success(f"🧠 Detected Emotion: {label} ({confidence:.2%} confidence)")
+        st.image(img, caption="Your Captured Image", use_container_width=True)
+else:
+    st.info("Webcam is currently turned off. Turn it on above to test real-time emotion detection.")
