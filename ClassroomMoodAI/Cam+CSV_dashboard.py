@@ -1,15 +1,25 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import numpy as np
+from PIL import Image
+import torch
+from transformers import AutoImageProcessor, AutoModelForImageClassification
 
 # --- Page setup ---
-st.set_page_config(page_title="Student Mood Tracker", layout="wide")
-st.title("📚 Classroom Emotion Insights")
+st.set_page_config(page_title="Classroom Mood Tracker", layout="wide")
+st.title("📚 Classroom AI for Real-time Emotion (CAIRE)")
 
 st.markdown(
-    "This dashboard uses AI to recognize facial emotions from uploaded student images or live webcam input. "
-    "Upload your own dataset, run predictions, or try it live!"
+    "This dashboard uses AI to recognize facial emotions from uploaded student images or live webcam input "
+    "to help create a better learning environment for everyone."
 )
+
+# Load model once
+model_name = "motheecreator/vit-Facial-Expression-Recognition"
+processor = AutoImageProcessor.from_pretrained(model_name)
+model = AutoModelForImageClassification.from_pretrained(model_name)
+model.eval()
 
 # --- File Upload Section ---
 st.markdown("## 📂 Upload a Dataset (e.g. ckextended.csv)")
@@ -25,37 +35,20 @@ if uploaded_file is not None:
         st.dataframe(raw_df.head())
 
         if st.button("🔍 Run Emotion Predictions on Uploaded Data"):
-            from PIL import Image
-            import numpy as np
-            import torch
-            from torchvision import transforms
-            from transformers import AutoImageProcessor, AutoModelForImageClassification
-
-            model_name = "motheecreator/vit-Facial-Expression-Recognition"
-            processor = AutoImageProcessor.from_pretrained(model_name)
-            model = AutoModelForImageClassification.from_pretrained(model_name)
-            model.eval()
-
-            transform = transforms.Compose([
-                transforms.ToPILImage(),
-                transforms.Resize((224, 224)),
-                transforms.Grayscale(num_output_channels=3),
-                transforms.ToTensor()
-            ])
-
             st.info("Processing... please wait ⏳")
             results = []
+
             for idx, row in raw_df.iterrows():
                 try:
                     pixels = np.array(row['pixels'].split(), dtype='uint8').reshape(48, 48)
-                    image = transform(pixels)
-                    image = image.unsqueeze(0)  # Batch
-                    inputs = processor(images=image.squeeze().permute(1, 2, 0), return_tensors="pt")
+                    img = Image.fromarray(pixels).convert("RGB")  # Convert to RGB
+
+                    inputs = processor(images=img, return_tensors="pt")
 
                     with torch.no_grad():
                         outputs = model(**inputs)
                         probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
-                        pred_idx = torch.argmax(probs, dim=1).item()
+                        pred_idx = probs.argmax().item()
                         pred_label = model.config.id2label[pred_idx]
                         confidence = probs[0][pred_idx].item()
 
@@ -66,7 +59,6 @@ if uploaded_file is not None:
                 except Exception as e:
                     st.warning(f"⚠️ Could not process row {idx}: {e}")
 
-            # Combine results
             predicted_df = pd.concat([raw_df.reset_index(drop=True), pd.DataFrame(results)], axis=1)
             st.success("✅ Emotion predictions complete!")
 
@@ -119,18 +111,9 @@ if use_camera:
     img_file_buffer = st.camera_input("📸 Capture your face")
 
     if img_file_buffer is not None:
-        from PIL import Image
-        import torch
-        from transformers import AutoImageProcessor, AutoModelForImageClassification
-
-        # Load model
-        model_name = "motheecreator/vit-Facial-Expression-Recognition"
-        processor = AutoImageProcessor.from_pretrained(model_name)
-        model = AutoModelForImageClassification.from_pretrained(model_name)
-        model.eval()
-
         img = Image.open(img_file_buffer).convert("RGB")
         inputs = processor(images=img, return_tensors="pt")
+
         with torch.no_grad():
             outputs = model(**inputs)
             probs = torch.nn.functional.softmax(outputs.logits, dim=-1)

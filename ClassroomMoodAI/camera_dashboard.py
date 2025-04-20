@@ -3,12 +3,12 @@ import pandas as pd
 import plotly.express as px
 
 # Page setup
-st.set_page_config(page_title="Student Mood Tracker", layout="wide")
-st.title("📚 Classroom Emotion Insights")
+st.set_page_config(page_title="Classroom Mood Tracker", layout="wide")
+st.title("📚 Classroom AI for Real-time Emotion (CAIRE)")
 
 st.markdown(
-    "This dashboard shows facial emotion predictions for students based on image analysis. "
-    "Use the filters below to explore results — or scroll down to try our live webcam emotion detection!"
+    "This dashboard uses AI to recognize facial emotions from uploaded student images or live webcam input in order to create a better learning environment for everyone."
+    "Upload your own dataset, run predictions, or try it live!"
 )
 
 # Load data
