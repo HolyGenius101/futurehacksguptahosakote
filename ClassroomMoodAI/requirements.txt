@@ -1,5 +1,7 @@
+streamlit
+pandas
+plotly
 torch
 torchvision
 transformers
-pandas
-pillow
+Pillow
